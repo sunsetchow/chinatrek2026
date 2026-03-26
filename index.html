@@ -49,6 +49,12 @@
   }
 
   /* ── Calendar Grid ── */
+  .calendar-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 8px;
+  }
   .calendar {
     display: grid;
     grid-template-columns: 90px repeat(9, 1fr);
@@ -58,6 +64,15 @@
     overflow: hidden;
     box-shadow: 0 4px 24px rgba(0,0,0,0.10);
     border: 1px solid #D4A843;
+    min-width: 1000px;
+  }
+  /* Scrollbar styling for usability */
+  .calendar-wrapper::-webkit-scrollbar {
+    height: 6px;
+  }
+  .calendar-wrapper::-webkit-scrollbar-thumb {
+    background-color: #D4A843;
+    border-radius: 10px;
   }
 
   /* ── Column Headers (dates) ── */
@@ -261,13 +276,7 @@
     transition: background 0.2s;
   }
   .btn-export:hover { background: #C0392B; }
-  .btn-export.btn-iframe {
-    background: #1A3A5C;
-  }
-  .btn-export.btn-iframe:hover { background: #2E5984; }
-  .btn-copied {
-    background: #2E5984 !important;
-  }
+
 
   /* ── Toast ── */
   .toast {
@@ -428,6 +437,7 @@
 </div>
 
 <!-- ══════════════════════════════════ CALENDAR ══════════════════════════════════ -->
+<div class="calendar-wrapper">
 <div class="calendar">
 
   <!-- ── DATE HEADERS ── -->
@@ -899,6 +909,7 @@
   <div class="cell row-hotel empty">Check-out</div>
 
 </div><!-- /calendar -->
+</div><!-- /calendar-wrapper -->
 
 <!-- ══════════════════════════════════ LEGEND ══════════════════════════════════ -->
 <div class="legend">
@@ -944,9 +955,7 @@
   <button class="btn-export" onclick="exportPDF()">
     📄 Export PDF
   </button>
-  <button class="btn-export btn-iframe" onclick="copyIframe()">
-    🔗 Copy Iframe Code
-  </button>
+
 </div>
 
 <div class="toast" id="toast"></div>
@@ -954,23 +963,6 @@
 <script>
 function exportPDF() {
   window.print();
-}
-
-function copyIframe() {
-  const url = window.location.href;
-  const code = `<iframe src="${url}" width="100%" height="900" style="border:none;border-radius:12px;overflow:hidden;" loading="lazy" title="LBS China Trek 2026 Itinerary"></iframe>`;
-  navigator.clipboard.writeText(code).then(() => {
-    showToast('✅ Iframe code copied to clipboard!');
-  }).catch(() => {
-    // Fallback
-    const ta = document.createElement('textarea');
-    ta.value = code;
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-    showToast('✅ Iframe code copied to clipboard!');
-  });
 }
 
 function showToast(msg) {
