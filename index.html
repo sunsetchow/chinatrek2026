@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LBS China Trek 2026</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #F5ECD7;
+    padding: 24px;
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  .header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .header h1 {
+    font-size: 26px;
+    font-weight: 700;
+    color: #8B1A1A;
+    letter-spacing: 0.5px;
+  }
+  .header .subtitle {
+    font-size: 13px;
+    color: #2C2C2C;
+    margin-top: 4px;
+    font-weight: 400;
+  }
+  .header .cities {
+    display: inline-flex;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .city-tag {
+    background: #1A3A5C;
+    color: #FAF0E6;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.3px;
+  }
+
+  /* ── Calendar Grid ── */
+  .calendar {
+    display: grid;
+    grid-template-columns: 90px repeat(9, 1fr);
+    gap: 0;
+    background: #FFFFFF;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+    border: 1px solid #D4A843;
+  }
+
+  /* ── Column Headers (dates) ── */
+  .col-header {
+    background: #1A3A5C;
+    color: #FAF0E6;
+    text-align: center;
+    padding: 10px 6px;
+    font-size: 12px;
+    font-weight: 600;
+    border-right: 1px solid rgba(255,255,255,0.15);
+    line-height: 1.4;
+  }
+  .col-header .day-num {
+    font-size: 18px;
+    font-weight: 700;
+    display: block;
+  }
+  .col-header .day-label {
+    font-size: 10px;
+    font-weight: 400;
+    opacity: 0.75;
+    display: block;
+  }
+  .col-header .city-label {
+    font-size: 10px;
+    font-weight: 500;
+    margin-top: 3px;
+    display: inline-block;
+    background: rgba(255,255,255,0.15);
+    padding: 1px 6px;
+    border-radius: 10px;
+  }
+  .col-header.arrival { background: #1A3A5C; }
+  .col-header.beijing { background: #8B1A1A; }
+  .col-header.chongqing { background: #C0392B; }
+  .col-header.chengdu { background: #2E5984; }
+  .col-header.shanghai { background: #D4A843; color: #FFFFFF; }
+  .col-header.departure { background: #2C2C2C; }
+  .col-header.transit-ckg { background: #C0392B; }
+  .col-header.transit-ctu { background: #2E5984; }
+  .col-header.transit-sha { background: #D4A843; color: #FFFFFF; }
+
+  /* ── Row Labels ── */
+  .row-label {
+    background: #F5ECD7;
+    border-right: 2px solid #D4A843;
+    border-bottom: 1px solid #D4A843;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #2C2C2C;
+    text-align: center;
+    line-height: 1.3;
+    letter-spacing: 0.2px;
+  }
+  .row-label.label-morning { border-left: 4px solid #2E5984; }
+  .row-label.label-lunch   { border-left: 4px solid #D4A843; }
+  .row-label.label-afternoon{ border-left: 4px solid #1A3A5C; }
+  .row-label.label-dinner  { border-left: 4px solid #C0392B; }
+  .row-label.label-evening { border-left: 4px solid #8B1A1A; }
+  .row-label.label-hotel   { border-left: 4px solid #2C2C2C; }
+
+  /* ── Cells ── */
+  .cell {
+    padding: 8px 9px;
+    border-right: 1px solid #e5e0d0;
+    border-bottom: 1px solid #e5e0d0;
+    font-size: 11px;
+    color: #2C2C2C;
+    line-height: 1.5;
+    vertical-align: top;
+    min-height: 60px;
+  }
+  .cell:last-child { border-right: none; }
+
+  /* Row color bands */
+  .row-morning .cell   { background: #eef3f8; }
+  .row-lunch .cell     { background: #fdf8eb; }
+  .row-afternoon .cell { background: #e8edf3; }
+  .row-dinner .cell    { background: #f8eded; }
+  .row-evening .cell   { background: #f3eae7; }
+  .row-hotel .cell     { background: #F5ECD7; }
+
+  /* ── Tags ── */
+  .tag {
+    display: inline-block;
+    font-size: 9.5px;
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: 10px;
+    margin-bottom: 3px;
+    letter-spacing: 0.2px;
+  }
+  .tag-hosted   { background: #d6e4f0; color: #1A3A5C; }
+  .tag-self     { background: #F5ECD7; color: #2C2C2C; }
+  .tag-optional { background: #fdf0c8; color: #8B6914; }
+  .tag-flight   { background: #dce5ef; color: #2E5984; }
+  .tag-train    { background: #d6e4f0; color: #1A3A5C; }
+  .tag-event    { background: #f0d0d0; color: #8B1A1A; }
+
+  .cell strong {
+    font-weight: 600;
+    color: #1A3A5C;
+    display: block;
+    margin-bottom: 2px;
+    font-size: 11.5px;
+  }
+
+  .cell ul {
+    margin: 3px 0 0 12px;
+    padding: 0;
+  }
+  .cell ul li {
+    font-size: 10.5px;
+    color: #2C2C2C;
+    margin-bottom: 1px;
+  }
+
+  .cell .note {
+    font-size: 10px;
+    color: #8a7e6b;
+    font-style: italic;
+    margin-top: 3px;
+  }
+
+  .hotel-name {
+    font-weight: 600;
+    font-size: 11px;
+    color: #1A3A5C;
+  }
+  .hotel-stars {
+    color: #D4A843;
+    font-size: 10px;
+    margin-left: 3px;
+  }
+
+  /* ── Empty / departure cell ── */
+  .cell.empty {
+    background: #F5ECD7 !important;
+    color: #8a7e6b;
+    text-align: center;
+    font-size: 10px;
+    font-style: italic;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    margin-top: 14px;
+    font-size: 11px;
+    color: #2C2C2C;
+  }
+
+  /* ── Legend ── */
+  .legend {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: #2C2C2C;
+  }
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  /* ── Export Buttons ── */
+  .actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 16px;
+    flex-wrap: wrap;
+  }
+  .btn-export {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #8B1A1A;
+    color: #FAF0E6;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+    transition: background 0.2s;
+  }
+  .btn-export:hover { background: #C0392B; }
+  .btn-export.btn-iframe {
+    background: #1A3A5C;
+  }
+  .btn-export.btn-iframe:hover { background: #2E5984; }
+  .btn-copied {
+    background: #2E5984 !important;
+  }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: #1A3A5C;
+    color: #FAF0E6;
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 1000;
+    pointer-events: none;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* ── Print / PDF ── */
+  @media print {
+    @page {
+      size: landscape;
+      margin: 0;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background: #F5ECD7;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    body { padding: 6mm; box-sizing: border-box; }
+    .actions, .toast { display: none !important; }
+    .header { margin-bottom: 12px; }
+    .header h1 { font-size: 24px; }
+    .header .subtitle { font-size: 13px; }
+    .city-tag { font-size: 10px; padding: 3px 8px; }
+    .calendar {
+      box-shadow: none;
+      border: 1px solid #ccc;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+    .col-header { padding: 12px 6px; font-size: 11px; }
+    .col-header .day-num { font-size: 16px; }
+    .col-header .day-label { font-size: 9px; }
+    .col-header .city-label { font-size: 9px; }
+    .row-label { font-size: 11px; padding: 8px 4px; }
+    .cell { padding: 12px 8px; font-size: 10px; min-height: 55px; }
+    .cell strong { font-size: 11px; margin-bottom: 4px; }
+    .cell ul li { font-size: 10px; margin-bottom: 2px; }
+    .cell .note { font-size: 9px; margin-top: 4px; }
+    .tag { font-size: 9px; padding: 2px 6px; margin-bottom: 4px; }
+    .hotel-name { font-size: 10px; }
+    .hotel-stars { font-size: 9px; }
+    .legend { margin-top: 12px; gap: 14px; }
+    .legend-item { font-size: 11px; }
+    .legend-dot { width: 10px; height: 10px; }
+    .footer { font-size: 11px; margin-top: 10px; }
+  }
+
+  /* ── Resources ── */
+  .resources {
+    background: #FFFFFF;
+    border-radius: 12px;
+    padding: 24px;
+    margin: 32px auto 20px;
+    max-width: 900px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+    border: 1px solid #D4A843;
+  }
+  .resources h3 {
+    font-size: 15px;
+    color: #8B1A1A;
+    margin-bottom: 16px;
+    font-weight: 700;
+  }
+  .resource-links {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .res-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: #fdf8eb;
+    border: 1px solid #e5e0d0;
+    border-radius: 10px;
+    text-decoration: none;
+    color: #2C2C2C;
+    transition: all 0.2s ease;
+  }
+  .res-card:hover {
+    background: #F5ECD7;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(212, 168, 67, 0.25);
+    border-color: #D4A843;
+  }
+  .res-icon {
+    font-size: 24px;
+  }
+  .res-text {
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+  .resources-footer {
+    text-align: center;
+    font-size: 13px;
+    color: #1A3A5C;
+    margin-top: 8px;
+    padding-top: 20px;
+    border-top: 1px solid #e5e0d0;
+    line-height: 1.6;
+  }
+  @media print {
+    .resources {
+      margin: 12px auto;
+      padding: 12px;
+      box-shadow: none;
+      break-inside: avoid;
+    }
+    .res-card {
+      break-inside: avoid;
+      border: 1px solid #ccc;
+      padding: 8px;
+    }
+    .res-icon { font-size: 16px; }
+    .res-text { font-size: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════ HEADER ══════════════════════════════════ -->
+<div class="header">
+  <img src="China Trek Logo.png" alt="LBS China Trek Logo" style="height: 80px; margin-bottom: 12px; object-fit: contain;">
+  <h1>LBS China Trek 2026</h1>
+  <div class="subtitle">March 29 – April 6, 2026 &nbsp;·&nbsp; 9 Days</div>
+  <div class="cities">
+    <span class="city-tag" style="background:#8B1A1A">Beijing</span>
+    <span class="city-tag" style="background:#C0392B">Chongqing</span>
+    <span class="city-tag" style="background:#2E5984">Chengdu</span>
+    <span class="city-tag" style="background:#D4A843;color:#FFFFFF">Shanghai</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ CALENDAR ══════════════════════════════════ -->
+<div class="calendar">
+
+  <!-- ── DATE HEADERS ── -->
+  <div class="col-header" style="background:#2C2C2C;">
+    <span class="day-label" style="opacity:1;font-size:11px;"></span>
+  </div>
+
+  <!-- Day 1 -->
+  <div class="col-header beijing">
+    <span class="day-num">Mar 29</span>
+    <span class="day-label">Sunday · Day 1</span>
+    <span class="city-label">Beijing</span>
+  </div>
+  <!-- Day 2 -->
+  <div class="col-header beijing">
+    <span class="day-num">Mar 30</span>
+    <span class="day-label">Monday · Day 2</span>
+    <span class="city-label">Beijing</span>
+  </div>
+  <!-- Day 3 -->
+  <div class="col-header beijing">
+    <span class="day-num">Mar 31</span>
+    <span class="day-label">Tuesday · Day 3</span>
+    <span class="city-label">Beijing</span>
+  </div>
+  <!-- Day 4 -->
+  <div class="col-header transit-ckg">
+    <span class="day-num">Apr 1</span>
+    <span class="day-label">Wednesday · Day 4</span>
+    <span class="city-label">BJS → CKG</span>
+  </div>
+  <!-- Day 5 -->
+  <div class="col-header transit-ctu">
+    <span class="day-num">Apr 2</span>
+    <span class="day-label">Thursday · Day 5</span>
+    <span class="city-label">CKG → CTU</span>
+  </div>
+  <!-- Day 6 -->
+  <div class="col-header chengdu">
+    <span class="day-num">Apr 3</span>
+    <span class="day-label">Friday · Day 6</span>
+    <span class="city-label">Chengdu</span>
+  </div>
+  <!-- Day 7 -->
+  <div class="col-header transit-sha">
+    <span class="day-num">Apr 4</span>
+    <span class="day-label">Saturday · Day 7</span>
+    <span class="city-label">CTU → SHA</span>
+  </div>
+  <!-- Day 8 -->
+  <div class="col-header shanghai">
+    <span class="day-num">Apr 5</span>
+    <span class="day-label">Sunday · Day 8</span>
+    <span class="city-label">Shanghai</span>
+  </div>
+  <!-- Day 9 -->
+  <div class="col-header departure">
+    <span class="day-num">Apr 6</span>
+    <span class="day-label">Monday · Day 9</span>
+    <span class="city-label">Departure</span>
+  </div>
+
+  <!-- ══════════════ ROW: MORNING ══════════════ -->
+  <div class="row-label label-morning row-morning">Morning</div>
+
+  <!-- D1 Morning -->
+  <div class="cell row-morning">
+    <strong>Arrival Day</strong>
+    Independent transfer to hotel
+    <div class="note">Check-in from 2:00 PM</div>
+    <div class="note">Recommended for early arrivals:</div>
+    <ul>
+      <li>Temple of Heaven</li>
+      <li>Summer Palace</li>
+      <li>Yonghe Temple</li>
+      <li>Tiananmen Square</li>
+    </ul>
+    <div class="note">Reach out to us for tips</div>
+  </div>
+
+  <!-- D2 Morning -->
+  <div class="cell row-morning">
+    <strong>Great Wall – Mutianyu</strong>
+    Coach departs 9:00 AM
+    <ul>
+      <li>Scenic hike &amp; photography</li>
+    </ul>
+  </div>
+
+  <!-- D3 Morning -->
+  <div class="cell row-morning">
+    <strong>Old Beijing Walk</strong>
+    <ul>
+      <li>Drum Tower</li>
+      <li>Hutong neighborhood walk</li>
+      <li>Yandaixie Street</li>
+      <li>Shichahai</li>
+    </ul>
+  </div>
+
+  <!-- D4 Morning -->
+  <div class="cell row-morning">
+    <span class="tag tag-flight">✈ Flight</span>
+    <strong>Beijing → Chongqing</strong>
+    3U8830 / CA4148
+    <div class="note">Hotel check-out &amp; airport transfer</div>
+  </div>
+
+  <!-- D5 Morning -->
+  <div class="cell row-morning">
+    <strong>Early morning visit</strong>
+    <ul>
+      <li><span class="tag tag-optional">Optional</span> Kuixinglou (Near hotel, guided)</li>
+      <li><span class="tag tag-self">Self-arranged</span> Liziba metro-through-building</li>
+    </ul>
+    <span class="tag tag-train">🚄 High-Speed Rail</span>
+    <strong>G2234 (9:53–11:24)</strong>
+    <div class="note">Coach to station from 8:00 AM</div>
+  </div>
+
+  <!-- D6 Morning -->
+  <div class="cell row-morning">
+    <strong>Giant Panda Base</strong>
+    Depart 9:00 AM
+    <ul>
+      <li>Chengdu Research Base of Giant Panda Breeding</li>
+    </ul>
+  </div>
+
+  <!-- D7 Morning -->
+  <div class="cell row-morning">
+    <span class="tag tag-flight">✈ Flight</span>
+    <strong>Chengdu → Shanghai</strong>
+    MU5410 (Shuangliu 12:25)
+    <br>MU9198 (Tianfu 12:30)
+    <div class="note">Hotel check-out &amp; airport transfer</div>
+  </div>
+
+  <!-- D8 Morning -->
+  <div class="cell row-morning">
+    <strong>Free Exploration in Shanghai</strong>
+    <br><br>
+    <span class="tag tag-optional">Optional Guided Visit</span>
+    <ul>
+      <li>Shanghai Old Street</li>
+      <li>Yu Garden surroundings</li>
+      <li>Shanghai Tower</li>
+    </ul>
+  </div>
+
+  <!-- D9 Morning -->
+  <div class="cell row-morning">
+    <strong>Departure Day</strong>
+    Check-out by 12:00 PM
+    <ul>
+      <li>PVG or SHA airport</li>
+    </ul>
+    <span class="tag tag-optional">Optional</span>
+    <div>Zhujiajiao Water Town</div>
+  </div>
+
+  <!-- ══════════════ ROW: LUNCH ══════════════ -->
+  <div class="row-label label-lunch row-lunch">Lunch</div>
+
+  <div class="cell row-lunch">
+    <span class="tag tag-self">Self-arranged</span>
+  </div>
+  <div class="cell row-lunch">
+    <span class="tag tag-hosted">Hosted</span>
+    <strong>Lunch picnic on the Great Wall</strong>
+  </div>
+  <div class="cell row-lunch">
+    <strong>Group Split:</strong>
+    <ul>
+      <li><span class="tag tag-hosted">Hosted</span> B: Hutong dumpling experience</li>
+      <li><span class="tag tag-self">Self</span> A: Around Hutong</li>
+    </ul>
+  </div>
+  <!-- D4 Lunch -->
+  <div class="cell row-lunch">
+    <span class="tag tag-hosted">Hosted</span>
+    <strong>On the plane</strong>
+  </div>
+  <div class="cell row-lunch">
+    <span class="tag tag-hosted">Hosted</span>
+    <strong>Famous local restaurant</strong>
+    Sichuan classics
+  </div>
+  <div class="cell row-lunch">
+    <span class="tag tag-self">Self-arranged</span>
+    Kuanzhai Alley
+  </div>
+  <div class="cell row-lunch">
+    <span class="tag tag-hosted">Hosted</span>
+    <strong>In-flight meal</strong>
+  </div>
+  <!-- D8 Lunch -->
+  <div class="cell row-lunch">
+    <span class="tag tag-optional">Optional</span>
+    <strong>Japanese buffet</strong>
+    <span class="tag tag-self">Self-arranged</span>
+  </div>
+  <div class="cell row-lunch empty">—</div>
+
+  <!-- ══════════════ ROW: AFTERNOON ══════════════ -->
+  <div class="row-label label-afternoon row-afternoon">Afternoon</div>
+
+  <!-- D1 Afternoon -->
+  <div class="cell row-afternoon">
+    <strong>Free Exploration</strong>
+    Settle in &amp; explore surroundings
+    <ul>
+      <li>Temple of Heaven</li>
+      <li>Summer Palace</li>
+      <li>Yonghe Temple</li>
+      <li>Tiananmen Square</li>
+    </ul>
+    <div class="note">Reach out to us for tips</div>
+  </div>
+
+  <!-- D2 Afternoon -->
+  <div class="cell row-afternoon">
+    <strong>798 Art Zone</strong>
+    1.5 hrs free exploration
+    <br><br>
+    <span class="tag tag-optional">Optional</span>
+    <ul>
+      <li>Tea house visit &amp; calligraphy experience</li>
+    </ul>
+    <div class="note">Return by coach or self-arranged taxi</div>
+  </div>
+
+  <!-- D3 Afternoon -->
+  <div class="cell row-afternoon">
+    <strong>Forbidden City</strong>
+    <br>
+    <span class="tag tag-event">Alumni Event</span>
+    <strong>Chinese craft beer experience + LBS Beijing alumni mixer</strong>
+  </div>
+
+  <!-- D4 Afternoon -->
+  <div class="cell row-afternoon">
+    <strong>Chongqing City Highlights</strong>
+    Airport pickup by coach
+    <ul>
+      <li>Tongyuan Gate</li>
+      <li>Mountain alley walk</li>
+    </ul>
+  </div>
+
+  <!-- D5 Afternoon -->
+  <div class="cell row-afternoon">
+    <strong>Tea house + Sichuan opera + mahjong experience</strong>
+    <br><br>
+    <strong>Group Rotations:</strong>
+    <ul>
+      <li>A: Eastern Suburb Memory<br>+ Shu Yan Fu Dinner and Show</li>
+      <li>B: Yulin Market + Chengdu Old Street Walk</li>
+    </ul>
+  </div>
+
+  <!-- D6 Afternoon -->
+  <div class="cell row-afternoon">
+    <strong>Kuan Zhai Alley</strong>
+    Free time
+    <br><br>
+    <span class="tag tag-optional">Optional add-on</span> Cooking Class
+    <div class="note">First group at Kuanzhai Alley, new group at Chunxi Road</div>
+    <br>
+    <strong>Group Rotations:</strong>
+    <ul>
+      <li>A: Yulin Market + Chengdu Old Street Walk</li>
+      <li>B: Eastern Suburb Memory<br>+ Shu Yan Fu Dinner and Show</li>
+    </ul>
+  </div>
+
+  <!-- D7 Afternoon -->
+  <div class="cell row-afternoon">
+    <strong>Arrival in Shanghai</strong>
+    Airport pickup → Hotel check-in
+  </div>
+
+  <!-- D8 Afternoon -->
+  <div class="cell row-afternoon">
+    <strong>Add-on Activities</strong>
+    <ul>
+      <li>Chinese Tea Ceremony</li>
+      <li>Chinese Rice Wine</li>
+      <li>Executive Insight</li>
+    </ul>
+  </div>
+
+  <!-- D9 Afternoon -->
+  <div class="cell row-afternoon empty">Independent Departure</div>
+
+  <!-- ══════════════ ROW: DINNER ══════════════ -->
+  <div class="row-label label-dinner row-dinner">Dinner</div>
+
+  <!-- D1 Dinner -->
+  <div class="cell row-dinner">
+    <span class="tag tag-hosted">Hosted</span>
+    <strong>Welcome Dinner at a famous Peking Duck restaurant + Baijiu experience</strong>
+    7:00pm
+    <div class="note">Performances from 7:00pm - 8:00pm</div>
+  </div>
+
+  <!-- D2 Dinner -->
+  <div class="cell row-dinner">
+    <strong>Group Split:</strong>
+    <ul>
+      <li><span class="tag tag-hosted">Hosted</span> A: Hutong dumpling experience</li>
+      <li><span class="tag tag-self">Self</span> B: Small Group Dinner</li>
+    </ul>
+    <div class="note">Luxury Hot Spring SPA includes dinner from 6-9pm</div>
+  </div>
+
+  <!-- D3 Dinner -->
+  <div class="cell row-dinner">
+    <span class="tag tag-self">Self-arranged</span>
+    Small group dinners
+  </div>
+
+  <!-- D4 Dinner -->
+  <div class="cell row-dinner">
+    <span class="tag tag-hosted">Hosted</span>
+    <strong>Chongqing Hotpot</strong>
+    Authentic Chongqing style
+  </div>
+
+  <!-- D5 Dinner -->
+  <div class="cell row-dinner">
+    <strong>Group Split:</strong>
+    <ul>
+      <li><span class="tag tag-hosted">Hosted</span> A: Shu Yan Fu Dinner and Show</li>
+      <li><span class="tag tag-self">Self</span> B: Small groups</li>
+    </ul>
+  </div>
+
+  <!-- D6 Dinner -->
+  <div class="cell row-dinner">
+    <strong>Group Split:</strong>
+    <ul>
+      <li><span class="tag tag-hosted">Hosted</span> B: Shu Yan Fu Dinner and Show</li>
+      <li><span class="tag tag-self">Self</span> A: Small groups</li>
+    </ul>
+  </div>
+
+  <!-- D7 Dinner -->
+  <div class="cell row-dinner">
+    <span class="tag tag-hosted">Hosted</span>
+    <strong>Farewell Dinner</strong>
+    Shanghai cuisine
+  </div>
+
+  <!-- D8 Dinner -->
+  <div class="cell row-dinner">
+    <span class="tag tag-self">Self-arranged</span>
+    Small group dinners
+  </div>
+
+  <!-- D9 Dinner -->
+  <div class="cell row-dinner empty">—</div>
+
+  <!-- ══════════════ ROW: EVENING ══════════════ -->
+  <div class="row-label label-evening row-evening">Evening</div>
+
+  <!-- D1 Evening -->
+  <div class="cell row-evening">
+    <span class="tag tag-event">Main Event</span>
+    <strong>Bar Hopping</strong>
+  </div>
+
+  <!-- D2 Evening -->
+  <div class="cell row-evening">
+    <span class="tag tag-self">Self-arranged</span>
+    <span class="tag tag-optional">Optional</span>
+    <strong>Luxury Hot Spring SPA Experience</strong>
+    Book in advance
+  </div>
+
+  <!-- D3 Evening -->
+  <div class="cell row-evening">
+    <span class="tag tag-self">Self-arranged</span>
+    <strong>Sanlitun Bar Hopping</strong>
+  </div>
+
+  <!-- D4 Evening -->
+  <div class="cell row-evening">
+    <span class="tag tag-event">Main Event</span>
+    <strong>Hongya Cave Night View</strong>
+    then coach back to hotel for check-in
+    <br><br>
+    <span class="tag tag-optional">Optional</span> 9th Street bar street visit
+  </div>
+
+  <!-- D5 Evening -->
+  <div class="cell row-evening">
+    <span class="tag tag-event">Main Event</span>
+    <strong>KTV / Bar Hopping</strong>
+  </div>
+
+  <!-- D6 Evening -->
+  <div class="cell row-evening">
+    <span class="tag tag-event">Main Event</span>
+    <strong>DNA Nightclub</strong>
+    Chengdu nightlife experience
+  </div>
+
+  <!-- D7 Evening -->
+  <div class="cell row-evening">
+    <span class="tag tag-event">Main Event</span>
+    <strong>Huangpu River Cruise Party</strong>
+    Joint celebration with LBS Shanghai Alumni &amp; partner schools
+  </div>
+
+  <!-- D8 Evening -->
+  <div class="cell row-evening">
+    <span class="tag tag-event">Main Event</span>
+    <strong>Pre-game before INS Entertainment Complex</strong>
+  </div>
+
+  <!-- D9 Evening -->
+  <div class="cell row-evening empty">—</div>
+
+  <!-- ══════════════ ROW: HOTEL ══════════════ -->
+  <div class="row-label label-hotel row-hotel">Hotel</div>
+
+  <!-- D1 Hotel -->
+  <div class="cell row-hotel">
+    <span class="hotel-name">Kempinski Beijing Yansha</span>
+    <span class="hotel-stars">★★★★★</span>
+  </div>
+  <!-- D2 Hotel -->
+  <div class="cell row-hotel">
+    <span class="hotel-name">Kempinski Beijing Yansha</span>
+    <span class="hotel-stars">★★★★★</span>
+  </div>
+  <!-- D3 Hotel -->
+  <div class="cell row-hotel">
+    <span class="hotel-name">Kempinski Beijing Yansha</span>
+    <span class="hotel-stars">★★★★★</span>
+  </div>
+  <!-- D4 Hotel -->
+  <div class="cell row-hotel">
+    <span class="hotel-name">Hyatt Regency Metropolitan Chongqing</span>
+    <span class="hotel-stars">★★★★★</span>
+  </div>
+  <!-- D5 Hotel -->
+  <div class="cell row-hotel">
+    <span class="hotel-name">Sheraton Chengdu Lido</span>
+    <span class="hotel-stars">★★★★★</span>
+  </div>
+  <!-- D6 Hotel -->
+  <div class="cell row-hotel">
+    <span class="hotel-name">Sheraton Chengdu Lido</span>
+    <span class="hotel-stars">★★★★★</span>
+  </div>
+  <!-- D7 Hotel -->
+  <div class="cell row-hotel">
+    <span class="hotel-name">Okura Garden Hotel Shanghai</span>
+    <span class="hotel-stars">★★★★★</span>
+  </div>
+  <!-- D8 Hotel -->
+  <div class="cell row-hotel">
+    <span class="hotel-name">Okura Garden Hotel Shanghai</span>
+    <span class="hotel-stars">★★★★★</span>
+  </div>
+  <!-- D9 Hotel -->
+  <div class="cell row-hotel empty">Check-out</div>
+
+</div><!-- /calendar -->
+
+<!-- ══════════════════════════════════ LEGEND ══════════════════════════════════ -->
+<div class="legend">
+  <div class="legend-item"><span class="legend-dot" style="background:#d6e4f0;border:1px solid #2E5984"></span> Hosted (included)</div>
+  <div class="legend-item"><span class="legend-dot" style="background:#F5ECD7;border:1px solid #D4A843"></span> Self-arranged</div>
+  <div class="legend-item"><span class="legend-dot" style="background:#fdf0c8;border:1px solid #D4A843"></span> Optional add-on</div>
+  <div class="legend-item"><span class="legend-dot" style="background:#f0d0d0;border:1px solid #C0392B"></span> Main event</div>
+  <div class="legend-item"><span class="legend-dot" style="background:#dce5ef;border:1px solid #2E5984"></span> Flight</div>
+  <div class="legend-item"><span class="legend-dot" style="background:#d6e4f0;border:1px solid #1A3A5C"></span> Train</div>
+</div>
+
+<div class="footer">LBS China Trek 2026 &nbsp;·&nbsp; Beijing · Chongqing · Chengdu · Shanghai &nbsp;·&nbsp; Confidential</div>
+
+<!-- ══════════════════════════════════ RESOURCES ══════════════════════════════════ -->
+<div class="resources">
+  <h3>🔗 Documents &amp; Resources</h3>
+  <div class="resource-links">
+    <a href="https://drive.google.com/drive/folders/104rNRYJiC_5mSjpJHX67g6_GzfZYYkif?usp=sharing" target="_blank" class="res-card">
+      <span class="res-icon">📁</span>
+      <div class="res-text">Documents Drive</div>
+    </a>
+    <a href="https://drive.google.com/file/d/1bIaku90gmVuuAtoE-0BneyUk7fV48NZ-/view?usp=drive_link" target="_blank" class="res-card">
+      <span class="res-icon">🏮</span>
+      <div class="res-text">China Culture Guide</div>
+    </a>
+    <a href="https://docs.google.com/document/d/1F2zjS3KLH50QRQTNOWdgE5yYk70-V-VMe3nBwk1XRh0/edit" target="_blank" class="res-card">
+      <span class="res-icon">📘</span>
+      <div class="res-text">Trek Next-Step Guidelines (T-5 months)</div>
+    </a>
+  </div>
+
+
+
+  <div class="resources-footer">
+    If you have any questions or run into issues, just reach out.<br>
+    <strong>We’re excited to have you on board!</strong><br><br>
+    📸 <strong>Follow & Tag us on Instagram:</strong> <a href="https://www.instagram.com/lbs_chinaclub/" target="_blank" style="color: #8B1A1A; text-decoration: none;">@lbs_chinaclub</a>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ ACTIONS ══════════════════════════════════ -->
+<div class="actions">
+  <button class="btn-export" onclick="exportPDF()">
+    📄 Export PDF
+  </button>
+  <button class="btn-export btn-iframe" onclick="copyIframe()">
+    🔗 Copy Iframe Code
+  </button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+function exportPDF() {
+  window.print();
+}
+
+function copyIframe() {
+  const url = window.location.href;
+  const code = `<iframe src="${url}" width="100%" height="900" style="border:none;border-radius:12px;overflow:hidden;" loading="lazy" title="LBS China Trek 2026 Itinerary"></iframe>`;
+  navigator.clipboard.writeText(code).then(() => {
+    showToast('✅ Iframe code copied to clipboard!');
+  }).catch(() => {
+    // Fallback
+    const ta = document.createElement('textarea');
+    ta.value = code;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('✅ Iframe code copied to clipboard!');
+  });
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+</script>
+
+</body>
+</html>
